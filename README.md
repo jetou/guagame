@@ -4,9 +4,9 @@
 第一个是<br>
 	Flappy bird<br>
 第二个是<br>
-	在原生的超级玛丽mario.nes中抠取的数据做的mario.nes<br>
+	在原生的mario.nes中抠取的数据做的超级玛丽<br>
 第三个是<br>
-	在原生的冒险岛island.nes中抠取的数据做的island.nes<br>
+	在原生的island.nes中抠取的数据做的冒险岛<br>
 第四个是<br>
 	仿造微信的打飞机游戏<br>
 <br>
