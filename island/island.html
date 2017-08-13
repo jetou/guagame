@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>island</title>
+        <style media="screen">
+            canvas {
+                border: dashed 1px lightskyblue;
+            }
+        </style>
+    </head>
+    <body>
+        <h3></h3>
+        <canvas id="id-canvas"
+            data-action='draw_tile'
+            data-type='source'
+            width="640" height="640"></canvas>
+        <canvas id="id-canvas-sprite"
+            data-action='draw_tile'
+            data-type='tile'
+            width="160" height="320"></canvas>
+        <canvas id=""
+            data-action='draw_tile'
+            data-type='tile'
+            width="160" height="160"></canvas>
+        <div class="gua-controls">
+            <button data-action='change_offset' data-offset="-1024">-1024</button>
+            <button data-action='change_offset' data-offset="1024">1024</button>
+            <button data-action='change_offset' data-offset="-16">-16</button>
+            <button data-action='change_offset' data-offset="16">16</button>
+        </div>
+<script>
+const e = sel => document.querySelector(sel)
+const log = console.log.bind(console)
+
+
+const ajax = request => {
+    let r = new XMLHttpRequest()
+    r.open('GET', request.url, true)
+    r.responseType = 'arraybuffer'
+    r.onreadystatechange = event => {
+        if (r.readyState == 4) {
+            request.callback(r.response)
+        }
+    }
+    r.send()
+}
+
+const drawBlock = (context, data, x, y, pixelWidth) => {
+    const colors = [
+        'white',
+        '#FC7460', //身体
+        '#A40000',
+        '#FBF7F8',
+    ]
+    let w = pixelWidth
+    let h = pixelWidth
+    for (let i = 0; i < 8; i++) {
+        let p1 = data[i]
+        let p2 = data[i + 8]
+        for (let j = 0; j < 8; j++) {
+            // 8 bits per line
+            // 在j循环中,每一次画一个像素点
+            let c1 = (p1 >> (7 - j)) & 0b00000001
+            let c2 = (p2 >> (7 - j)) & 0b00000001
+            let pixel = (c2 << 1) + c1
+            let color = colors[pixel]
+            context.fillStyle = color
+            let px = x + j * w
+            let py = y + i * h
+            context.fillRect(px, py, w, h)
+        }
+    }
+}
+const drawSprite = (data, canvas, offsetX, offsetY, w, h) => {
+    let context = canvas.getContext('2d')
+    let pixelsPerBlock = 8
+    let pixelWidth = 10
+    let blockSize = pixelsPerBlock * pixelWidth
+    let offset = 0
+    for (var i = 0; i < h; i++) {
+        for (var j = 0; j < w; j++) {
+            let x = (offsetX + j) * blockSize
+            let y = (offsetY + i) * blockSize
+            let pixels = data.slice(offset)
+            drawBlock(context, pixels, x, y, pixelWidth)
+            offset += 16
+        }
+    }
+}
+
+const drawNes = bytes => {
+    let canvas = e('#id-canvas')
+    let context = canvas.getContext('2d')
+
+    let blockSize = 8 // 一个图块代表8个像素
+    let pixelSize = 8
+    let pixelWidth = 10
+    let numberOfBytesPerBlock = 16
+    for (let i = 0; i < blockSize; i++) {
+        for (let j = 0; j < blockSize; j++) {
+            // 算出 bytes
+            let x = j * pixelSize * pixelWidth
+            let y = i * pixelSize * pixelWidth
+            let index = window.offset + (i * 8 + j) * numberOfBytesPerBlock
+            drawBlock(context, bytes.slice(index), x, y, pixelWidth)
+        }
+    }
+
+}
+
+const actions = {
+    change_offset(event){
+        let offset = Number(event.target.dataset.offset)
+        window.offset += offset
+        e('h3').innerHTML = window.offset
+        drawNes(window.bytes)
+    },
+    draw_tile(event) {
+        let target = event.target
+        let rect = target.getBoundingClientRect()
+        let x = event.clientX - rect.left
+        let y = event.clientY - rect.top
+        let i = Math.floor(x / 80)
+        let j = Math.floor(y / 80)
+        let bytesPerBlock = 16
+        //
+        let type = target.dataset.type
+        if (type == 'source') {
+            let offset = i * bytesPerBlock + bytesPerBlock * 8 * j
+            window.titleOffset = offset + window.offset
+        } else if (type == 'tile') {
+            let data = window.bytes.slice(window.titleOffset)
+            drawSprite(data, target, i, j, 1, 1)
+        }
+    }
+}
+
+const bindEvents = () => {
+    e('body').addEventListener('click', event => {
+        let action = event.target.dataset.action
+        actions[action] && actions[action](event)
+    })
+}
+
+const drawSpritehead = data => {
+    let numberOfBytesPerBlock = 16
+    let pixelSize = 8
+    let blockSize = 2 // 一个图块代表8个像素
+    let pixelWidth = 10
+    let context = e('#id-canvas-sprite').getContext('2d')
+    for (let i = 0; i < blockSize; i++) {
+        for (let j = 0; j < blockSize; j++) {
+            // 算出 bytes
+            let x = j * pixelSize * pixelWidth
+            let y = i * pixelSize * pixelWidth
+            let index = (i * 8 + j) * numberOfBytesPerBlock
+            if (i > 0) {
+                index = ((i+1) * 8 + j) * numberOfBytesPerBlock
+            }
+            drawBlock(context, data.slice(index), x, y, pixelWidth)
+        }
+    }
+    //log(x, y, offset)
+}
+
+const drawSpritebody = data => {
+    let numberOfBytesPerBlock = 16
+    let pixelSize = 8
+    let blockSize = 2 // 一个图块代表8个像素
+    let pixelWidth = 10
+    let index = 0
+    let context = e('#id-canvas-sprite').getContext('2d')
+    for (let i = 0; i < 2; i++) {
+        for (let j = 2; j < 4; j++) {
+            // 算出 bytes
+            let x = (j-2) * pixelSize * pixelWidth
+            let y = (i+2) * pixelSize * pixelWidth
+            index = (i * 8 + j) * numberOfBytesPerBlock
+            if (i > 0) {
+                index = ((i+1) * 8 + j) * numberOfBytesPerBlock
+                // log(index)
+            }
+            //log(index)
+            drawBlock(context, data.slice(index), x, y, pixelWidth)
+        }
+    }
+}
+
+
+const __main = () => {
+    window.offset = 32784
+    titleOffset = 32784
+    let request = {
+        url: 'island.nes',
+        callback(r) {
+            window.bytes = new Uint8Array(r)
+            log(window.bytes)
+            drawNes(window.bytes)
+            drawSpritehead(bytes.slice(titleOffset))
+            //drawSpritebody(bytes.slice(titleOffset))
+            let step = 0
+            let bytesPerBlock = 16
+            let tilesPerSprite = 2
+            let bytesPerSprite = bytesPerBlock * tilesPerSprite
+            setInterval(function(){
+                let offset = titleOffset + step * bytesPerSprite
+                drawSpritebody(bytes.slice(offset))
+                step++
+                step %= 3
+            }, 200)
+        }
+    }
+    ajax(request)
+    bindEvents()
+}
+
+__main()
+</script>
+
+    </body>
+</html>
