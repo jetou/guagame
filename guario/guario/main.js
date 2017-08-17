@@ -30,23 +30,10 @@ var __main = function() {
     var images = {
         bg: 'bird/background.png',
         ground: 'bird/foreground.png',
-        bird1: 'bird/0bird.png',
-        bird2: 'bird/1bird.png',
-        bird3: 'bird/2bird.png',
-        pipe: 'bird/pipe-north.png',
-        pipe2: 'bird/pipe-south.png',
-        titlemessage: 'bird/message.png',
-        gameover: 'bird/gameover.png',
-        score0: 'bird/0.png',
-        score1: 'bird/1.png',
-        score2: 'bird/2.png',
-        score3: 'bird/3.png',
-        score4: 'bird/4.png',
-        score5: 'bird/5.png',
-        score6: 'bird/6.png',
-        score7: 'bird/7.png',
-        score8: 'bird/8.png',
-        score9: 'bird/9.png',
+        t1:     'tiles/t1.png',
+        t2:     'tiles/t2.png',
+        t3:     'tiles/t3.png',
+        t4:     'tiles/t4.png',
     }
     let request = {
         url: 'mario.nes',
@@ -54,7 +41,8 @@ var __main = function() {
             window.bytes = new Uint8Array(r)
             log('mario file', window.bytes.length)
             var game = GuaGame.instance(30, images, function(g){
-                var s = SceneGame.new(g)
+                // var s = SceneGame.new(g)
+                var s = SceneEditor.new(g)
                 // var s = Scene.new(g)
                 g.runWithScene(s)
             })

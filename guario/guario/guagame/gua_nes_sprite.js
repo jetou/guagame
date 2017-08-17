@@ -23,6 +23,9 @@ class GuaNesSprite {
         this.flipX = false
         this.gy = 10
         this.vy = 0
+        // 加速度和摩擦
+        this.vx = 0
+        this.mx = 0
     }
     static new(game) {
         return new this(game)
@@ -81,10 +84,20 @@ class GuaNesSprite {
         //this.rotation = -45
     }
     update() {
+        //更新 x 加速和摩擦
+        this.vx += this.mx
+        //说明摩擦力已经把速度降至0一下,停止摩擦
+        if (this.vx * this.mx > 0) {
+            this.vx = 0
+            this.mx = 0
+        } else {
+            this.x += this.vx
+        }
+
         // //更新受力
         this.y += this.vy
         this.vy += this.gy * 0.2
-        var h = 355
+        var h = 100
         if (this.y > h) {
             this.y = h
         }
@@ -121,6 +134,13 @@ class GuaNesSprite {
     }
     move(x, keystatus) {
         this.flipX = (x < 0)
-        this.x += x
+        // this.x += x
+        let s = 0.2 * x
+        if (keystatus == 'down') {
+            this.vx += s
+            this.mx = -s/3
+        } else {
+
+        }
     }
 }

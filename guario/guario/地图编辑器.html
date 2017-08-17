@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>guario map editor</title>
+        <style media="screen">
+            canvas {
+                border: dashed 1px lightskyblue;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="id-canvas"
+            data-action='draw_tile'
+            data-type='source'
+            width="512" height="480">
+        </canvas>
+        <div class="gua-inline-block">
+            <img data-action = 'change_active_tile' src="tiles/t1.png" data-id='1'>
+            <img data-action = 'change_active_tile' src="tiles/t2.png" data-id='2'>
+            <img data-action = 'change_active_tile' src="tiles/t3.png" data-id='3'>
+            <img data-action = 'change_active_tile' src="tiles/t4.png" data-id='4'>
+        </div>
+        <div class="gua-controls">
+            <button data-action='change_offset' data-offset="-1024">-1024</button>
+            <button data-action='change_offset' data-offset="-16">-16</button>
+            <button data-action='change_offset' data-offset="16">16</button>
+            <button data-action='change_offset' data-offset="1024">1024</button>
+            <button data-action='clear_tile' data-selector="#id-canvas-tile">清空 tile</button>
+            <button data-action='clear_tile' data-selector="#id-canvas-tilesmall">清空2 tile</button>
+        </div>
+        <h3>#5080FF</h3>
+
+<script>
+
+const e = sel => document.querySelector(sel)
+const log = console.log.bind(console)
+
+
+const actions = {
+    change_active_tile(event) {
+        let id = Number(event.target.dataset.id)
+        // e('h3').innerHTML = window.offset
+        // drawNes(window.bytes)
+        window.activeTile = event.target
+    },
+    draw_tile(event) {
+        let target = event.target
+        let rect = target.getBoundingClientRect()
+        let x = event.clientX - rect.left
+        let y = event.clientY - rect.top
+        let tileSize = 32
+        let i = Math.floor(x / tileSize)
+        let j = Math.floor(y / tileSize)
+        // let i = Math.floor(x / 80)
+        // let j = Math.floor(y / 80)
+        let x1 = i * tileSize
+        let y1 = j * tileSize
+        // window.context.fillStyle = '#5080FF'
+        window.context.fillRect(x1, y1, tileSize, tileSize)
+        window.context.drawImage(window.activeTile, x1, y1)
+    },
+}
+const tilePosition = (x, y) => {
+    let tileSize = 32
+    let i = Math.floor(x / tileSize)
+    let j = Math.floor(y / tileSize)
+    // let i = Math.floor(x / 80)
+    // let j = Math.floor(y / 80)
+    let x1 = i * tileSize
+    let y1 = j * tileSize
+
+    return [x1, y1]
+}
+
+const drawTileAt = (x, y) => {
+    let tileSize = 32
+    let [x1, y1] = tilePosition(x, y)
+    // window.context.fillStyle = '#5080FF'
+
+    window.context.fillRect(x1, y1, tileSize, tileSize)
+    window.context.drawImage(window.activeTile, x1, y1)
+    let tile = Number(window.activeTile.dataset.id)
+    let mx = x1 / tileSize
+    let my = y1 / tileSize
+    window.map.setTile(mx, my, tile)
+
+}
+
+const bindEvents = () => {
+    e('body').addEventListener('click', event => {
+        let action = event.target.dataset.action
+        actions[action] && actions[action](event)
+    })
+    //拖动事件
+    let moving = false
+    window.canvas.addEventListener('mousedown', event => {
+
+        moving = true
+        let x = event.clientX
+        let y = event.clientY
+        drawTileAt(x, y)
+    })
+    window.canvas.addEventListener('mousemove', event => {
+
+        if (moving) {
+            let x = event.clientX
+            let y = event.clientY
+            drawTileAt(x, y)
+        }
+    })
+    window.canvas.addEventListener('mouseup', event => {
+        moving = false
+    })
+}
+
+const init = () => {
+    window.map = new Map()
+    window.activeTile = null
+    window.canvas = e('canvas')
+    window.context = window.canvas.getContext('2d')
+    window.context.fillStyle = '#5080FF'
+    window.context.fillRect(0, 0, 1000, 1000)
+}
+
+class Map {
+    constructor() {
+        this.height = 15
+        this.width = 20
+        this.tiles = []
+        this.setupTiles()
+    }
+    setupTiles() {
+        let s = this.height * this.width
+        for (var i = 0; i < s; i++) {
+            this.tiles[i] = 0
+        }
+    }
+    setTile(i, j, tile) {
+        let index = i * this.height + j
+        this.tiles[index] = tile
+    }
+    exportJSON() {
+        let s = JSON.stringify(this.tiles)
+        log(s)
+    }
+}
+const __main = () => {
+    init()
+    bindEvents()
+}
+
+__main()
+</script>
+    </body>
+</html>

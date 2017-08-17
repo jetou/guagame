@@ -7,6 +7,9 @@
             canvas {
                 border: 1px black solid;
             }
+            .gua-inline-block {
+                display: inline-block;
+            }
         </style>
         <!-- gua game -->
         <script src = 'guagame/gua_nes_sprite.js'></script>
@@ -20,11 +23,18 @@
         <script src = 'scene/end/scene_end.js'></script>
         <script src = 'scene/main/scene_game.js'></script>
         <script src = 'scene/title/scene_start.js'></script>
+        <script src = 'scene/editor/scene_editor.js'></script>
         <!-- 配置数据 -->
         <script src='config.js'></script>
     </head>
     <body>
-        <canvas id="id-canvas" width="400" height="500"></canvas>
+        <canvas id="id-canvas" width="512" height="480"></canvas>
+        <div class="gua-inline-block">
+            <img data-action = 'change_active_tile' src="tiles/t1.png" data-id='1'>
+            <img data-action = 'change_active_tile' src="tiles/t2.png" data-id='2'>
+            <img data-action = 'change_active_tile' src="tiles/t3.png" data-id='3'>
+            <img data-action = 'change_active_tile' src="tiles/t4.png" data-id='4'>
+        </div>
         <hr>
         <input id=id-input-speed type="range" value="1">
         <div class="gua-controls">
@@ -72,6 +82,15 @@
                     div.insertAdjacentHTML('beforeend', html)
                 }
             }
+            const actions = {
+                change_active_tile(event) {
+                    let id = Number(event.target.dataset.id)
+                    // e('h3').innerHTML = window.offset
+                    // drawNes(window.bytes)
+                    log(id)
+                },
+            }
+
             var bindEvents = function() {
                 bindAll('.gua-auto-slider', 'input', function(event){
                     var target = event.target
@@ -80,6 +99,11 @@
                     eval(bindVar + '.value =' + v)
                     var label = target.closest('label').querySelector('.gua-label')
                     label.innerText = v
+                })
+                //
+                e('body').addEventListener('click', event => {
+                    let action = event.target.dataset.action
+                    actions[action] && actions[action](event)
                 })
             }
 
